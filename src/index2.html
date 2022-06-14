@@ -108,13 +108,13 @@
       scene.render(roto);
     }
 
-    const onVidometerStarted = () => {
-      console.log('onVidometerStarted');
-    }
-
     function onClick() {
       if (isReady) {
-        vidometer.start(width / 2 + 1, height / 2 + 1);
+        vidometer.start(width / 2 + 1, height / 2 + 1)
+          .then(roto => {
+            // scene.updateObjectMatrix(roto);
+            console.log('object is located on the scene');
+          });
       }
     }
 
@@ -134,7 +134,6 @@
       vidometer.onReady = onVidometerReady;
       vidometer.onMotion = onVidometerMotion;
       vidometer.onProcess = onVidometerProcess;
-      vidometer.onStarted = onVidometerStarted;
       vidometer.initialize(width, height, fov, canvas);
     }
 

@@ -7,7 +7,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.js"
     integrity="sha512-NLtnLBS9Q2w7GKK9rKxdtgL7rA7CAS85uC/0xd9im4J/yOL4F9ZVlv634NAM7run8hz3wI2GabaA6vv8vJtHiQ=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://bettar.life/vidometry/vidometer.1.0.8.js"></script>
+  <script src="https://bettar.life/vidometry/vidometer.1.0.9.js"></script>
   <script>
     class Scene3D {
       constructor(width, height, fov, canvas) {
@@ -100,7 +100,7 @@
     }
 
     const onVidometerMotion = (roto) => {
-      scene.updateObjectMatrix(roto);
+      // scene.updateObjectMatrix(roto);
     }
 
     const onVidometerProcess = (roto, focal) => {
@@ -108,13 +108,13 @@
       scene.render(roto);
     }
 
-    const onVidometerStarted = () => {
-      console.log('onVidometerStarted');
-    }
-
     function onClick() {
       if (isReady) {
-        vidometer.start(width / 2 + 1, height / 2 + 1);
+        vidometer.start(width / 2 + 1, height / 2 + 1)
+          .then(roto => {
+            scene.updateObjectMatrix(roto);
+            console.log('object is located on the scene');
+          });
       }
     }
 
@@ -133,7 +133,6 @@
       vidometer.onReady = onVidometerReady;
       vidometer.onMotion = onVidometerMotion;
       vidometer.onProcess = onVidometerProcess;
-      vidometer.onStarted = onVidometerStarted;
       vidometer.initialize(width, height, fov, canvas);
     }
 

@@ -1,4 +1,4 @@
-# vidometer v1.0.8
+# vidometer v1.0.9
 
 **vidometer** is a World Tracking feature of **bettar-vidometry** library.
 
@@ -92,13 +92,11 @@ document.body.appendChild(vidometer);
     3. **onProcess(rototranslation, focal)** - uses to update 3d position of the perspective camera of the scene. Throws every frame;
         1. **rototranslation** - source of rototranslation matrix (4x4);
         2. **focal** - focal length of the perspective camera;
-    4. **onStarted()** - throws once, when object is located on the scene;
 
 ```jsx
 vidometer.onReady = onVidometerReady;
 vidometer.onMotion = onVidometerMotion;
 vidometer.onProcess = onVidometerProcess;
-vidometer.onStarted = onVidometerStarted;
 ```
 
 1. Initialize **vidometer**:
@@ -114,12 +112,16 @@ vidometer.initialize(sceneWidth, sceneHeight, fov, videoCanvas);
 1. Start **vidometer** processing:
     1. x - horizontal position on the scene(starting from the left side);
     2. y - vertical position on the scene(starting from the top side);
+    3. roto - 3d position of the object/objects on the scene (source of ****rototranslation matrix);
     
     If you use the preview mode of the model on the scene (show object position and orientation on the scene before starting), we recommend using starting position in the center of the screen:  **start(sceneWidth/2**, **sceneHeight/2)**.
     
 
 ```tsx
-vidomter.start(x, y);
+vidomter.start(x, y)
+	.then(roto => {
+		// object is located on the scene
+	});
 ```
 
 You can also stop the processing of the vidometer
@@ -251,13 +253,13 @@ After resuming of the processing you need to call the **start** method to positi
       scene.render(roto);
     }
 
-    const onVidometerStarted = () => {
-      console.log('onVidometerStarted');
-    }
-
     function onClick() {
       if (isReady) {
-        vidometer.start(width / 2 + 1, height / 2 + 1);
+        vidometer.start(width / 2 + 1, height / 2 + 1)
+					.then(roto => {
+            // scene.updateObjectMatrix(roto);
+            console.log('object is located on the scene');
+          });
       }
     }
 
@@ -276,7 +278,6 @@ After resuming of the processing you need to call the **start** method to positi
       vidometer.onReady = onVidometerReady;
       vidometer.onMotion = onVidometerMotion;
       vidometer.onProcess = onVidometerProcess;
-      vidometer.onStarted = onVidometerStarted;
       vidometer.initialize(width, height, fov, canvas);
     }
 
@@ -325,6 +326,7 @@ src/index2.html - example of **vidometer** programmatically added;
 
 1. ***x*** - horizontal position on the scene(starting from the left side);
 2. ***y*** - vertical position on the scene(starting from the top side);
+3. returns **Promise<number[]> -** 3d position of the object/objects on the scene (source of ****rototranslation matrix);
 
 **stop()** - stops **vidometer** processing;
 
