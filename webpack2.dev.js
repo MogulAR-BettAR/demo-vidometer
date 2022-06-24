@@ -34,6 +34,6 @@ module.exports = {
     ],
     compress: true,
     port: 8080,
-    inline: true
+    inline: true,
   },
 };

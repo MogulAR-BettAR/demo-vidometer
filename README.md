@@ -1,4 +1,4 @@
-# vidometer v1.0.9
+# vidometer v1.0.10
 
 **vidometer** is a World Tracking feature of **bettar-vidometry** library.
 
@@ -312,6 +312,10 @@ src/index.html - example with static **vidometry-vidometer** tag;
 src/index2.html - example of **vidometer** programmatically added;
 
 ## API
+
+### Attributes:
+
+**start-once** (*boolean*) - restricts multi starting, by default *false*;
 
 ### Methods:
 
