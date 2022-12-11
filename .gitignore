@@ -9,3 +9,5 @@ public
 
 package-lock.json
 yarn.lock
+webpack.dev.js
+src/index.html
