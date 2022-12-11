@@ -7,7 +7,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.js"
     integrity="sha512-NLtnLBS9Q2w7GKK9rKxdtgL7rA7CAS85uC/0xd9im4J/yOL4F9ZVlv634NAM7run8hz3wI2GabaA6vv8vJtHiQ=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://bettar.life/vidometry/vidometer.1.0.11.js"></script>
+  <script src="https://bettar.life/vidometry/vidometer.1.0.10.js"></script>
   <script>
     class Scene3D {
       constructor(width, height, fov, canvas) {
@@ -28,7 +28,7 @@
 
         // 3. camera
         const aspect = width / height;
-        this.camera = new THREE.PerspectiveCamera(35/*fov*/, aspect, 0.01, 10000);
+        this.camera = new THREE.PerspectiveCamera(fov, aspect, 0.01, 10000);
         this.camera.filmGauge = Math.max(width, height);
         this.camera.updateProjectionMatrix();
         this.scene.add(this.camera);
@@ -112,7 +112,7 @@
       if (isReady) {
         vidometer.start(width / 2 + 1, height / 2 + 1)
           .then(roto => {
-            // scene.updateObjectMatrix(roto);
+            scene.updateObjectMatrix(roto);
             console.log('object is located on the scene');
           });
       }
@@ -121,7 +121,7 @@
     function init() {
       width = window.innerWidth;
       height = window.innerHeight;
-      fov = 70;
+      fov = 65;
 
       initVidometer();
       initScene();
@@ -129,7 +129,8 @@
 
     function initVidometer() {
       const canvas = document.getElementById('canvas-video');
-      vidometer = document.getElementById('vidometer');
+      vidometer = this.document.createElement('vidometry-vidometer');
+      document.body.appendChild(vidometer);
       vidometer.onReady = onVidometerReady;
       vidometer.onMotion = onVidometerMotion;
       vidometer.onProcess = onVidometerProcess;
@@ -151,8 +152,7 @@
 </head>
 
 <body onload="init();" onclick="onClick();">
-  <div style="position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;" scrolling="no">
-    <vidometry-vidometer id="vidometer"></vidometry-vidometer>
+  <div style="position: absolute; left: 0; top: 0; width: 100vw; height: 100vh">
     <canvas id="canvas-video" style="position: absolute;"></canvas>
     <canvas id="canvas-gl" style="position: absolute; left: 0; top: 0; width: 100vw; height: 100vh;" width="100vw"
       height="100vh"></canvas>

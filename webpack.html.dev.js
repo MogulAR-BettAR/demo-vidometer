@@ -23,7 +23,7 @@ module.exports = {
   },
   plugins: [
     new HtmlWebPackPlugin({
-      template: path.resolve(__dirname, './src/index2.html'),
+      template: path.resolve(__dirname, './src/index-html.html'),
       filename: path.resolve(__dirname, './public/index.html')
     }),
   ],
@@ -34,6 +34,6 @@ module.exports = {
     ],
     compress: true,
     port: 8080,
-    inline: true,
+    inline: true
   },
 };

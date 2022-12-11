@@ -9,8 +9,9 @@
     "dist"
   ],
   "scripts": {
-    "start": "webpack-dev-server --https --host 0.0.0.0 --mode development --config webpack.dev.js",
-    "start2": "webpack-dev-server --https --host 0.0.0.0 --mode development --config webpack2.dev.js"
+    "start-html": "webpack-dev-server --https --host 0.0.0.0 --mode development --config webpack.html.dev.js",
+    "start-prog": "webpack-dev-server --https --host 0.0.0.0 --mode development --config webpack.prog.dev.js",
+    "start": "webpack-dev-server --https --host 0.0.0.0 --mode development --config webpack.dev.js"
   },
   "dependencies": {},
   "devDependencies": {
