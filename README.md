@@ -1,13 +1,13 @@
-# vidometer v1.0.11
+# vidometer v1.0.16
 
 **vidometer** is a World Tracking feature of **bettar-vidometry** library.
 
-This library is created to simplify using AR world tracking experience on the web.
+This library is created to simplify using the AR world tracking experience on the web.
 In a few lines of the code, you can integrate the World Tracking experience into your web application to provide an exciting AR experience for the users.
 
 ## vidometer-demo
 
-This example project shows how to integrate **vidometer** into your web application.
+This example project shows how to integrate a **vidometer** into your web application.
 
 You can check [live example](https://bettar.life/vidometer/).
 
@@ -29,22 +29,22 @@ yarn install
 
 Execute the following command in order to run the application in development mode:
 
-start - runs example with static **vidometry-vidometer** tag;
+*start-html* - runs example with static **vidometry-vidometer** tag;
 
-start2 - runs example with **vidometer** programmatically added;
+*start-prog* - runs example with **vidometer** programmatically added;
 
 ```tsx
-npm run start
+npm run start-html
 // OR
-npm run start2
+npm run start-prog
 ```
 
 OR
 
 ```tsx
-yarn start
+yarn start-html
 // OR
-yarn start2
+yarn start-prog
 ```
 
 Run the following URL on your mobile device:
@@ -55,14 +55,14 @@ https://localhost:8080
 
 # vidometer integration
 
-In order to add **vidometer** to your site you need the following actions:
+In order to add a **vidometer** to your site you need the following actions:
 
 1. Add the following JS script in the **head** section:
 
 ```tsx
 <head>
 	...
-	<script src="https://bettar.life/vidometry/vidometer.1.0.11.js"></script>
+	<script src="https://bettar.life/vidometry/vidometer.1.0.16.js"></script>
 	...
 </head>
 ```
@@ -76,6 +76,12 @@ In order to add **vidometer** to your site you need the following actions:
 <vidometry-vidometer id="vidometer"></vidometry-vidometer>
 ```
 
+or with attributes:
+
+```jsx
+<vidometry-vidometer id="vidometer" initial-height="1.3" object-tracking></vidometry-vidometer>
+```
+
 b. add vidometry-vidometer programmatically:
 
 ```tsx
@@ -83,7 +89,15 @@ vidometer = this.document.createElement('vidometry-vidometer');
 document.body.appendChild(vidometer);
 ```
 
- 
+or with attributes:
+
+```jsx
+
+vidometer = this.document.createElement('vidometry-vidometer');
+vidometer.setAttribute('initial-height', '1.3');
+vidometer.setAttribute('object-tracking', true);
+document.body.appendChild(vidometer);
+```
 
 1. Add **vidometer** callbacks:
     1. **onReady()** - throws when vidometer is initialized and ready to work;
@@ -138,7 +152,7 @@ In order to resume vidometer processing, you need to call the resume method:
 vidometer.resume();
 ```
 
-After resuming of the processing you need to call the **start** method to position the object on the scene.
+After resuming the processing you need to call the **start** method to position the object on the scene.
 
 **Complete example with vidometry-vidometer tag:** 
 
@@ -152,7 +166,7 @@ After resuming of the processing you need to call the **start** method to positi
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.js"
     integrity="sha512-NLtnLBS9Q2w7GKK9rKxdtgL7rA7CAS85uC/0xd9im4J/yOL4F9ZVlv634NAM7run8hz3wI2GabaA6vv8vJtHiQ=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://bettar.life/vidometry/vidometer.1.0.11.js"></script>
+  <script src="https://bettar.life/vidometry/vidometer.1.0.8.js"></script>
   <script>
     class Scene3D {
       constructor(width, height, fov, canvas) {
@@ -266,7 +280,7 @@ After resuming of the processing you need to call the **start** method to positi
     function init() {
       width = window.innerWidth;
       height = window.innerHeight;
-      fov = 70;
+      fov = 65;
 
       initVidometer();
       initScene();
@@ -315,7 +329,9 @@ src/index2.html - example of **vidometer** programmatically added;
 
 ### Attributes:
 
-**start-once** (*boolean*) - restricts multi starting, by default *false*;
+**initial-height** (*number*) - vertical distance to the tracked plane in meters (optional, by default - *1.3m*);
+
+**object-tracking** (*boolean*) - uses if the object should locate in a limited area: table, etc. (optional by default - *false*).
 
 ### Methods:
 
@@ -323,7 +339,7 @@ src/index2.html - example of **vidometer** programmatically added;
 
 1. ***sceneWidth*** - width of the scene in pixels;
 2. ***sceneHeight*** - height of the scene in pixels;
-3. ***fov*** - initial filed of view of the perspective camera (recommended value is 70);
+3. ***fov*** - initial filed of view of the perspective camera (recommended value is 65);
 4. ***videoCanvas*** - reference to the canvas tag where video frame should be rendered;
 
 **start(x, y)** - starts **vidometer** processing:

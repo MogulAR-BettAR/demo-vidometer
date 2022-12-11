@@ -7,7 +7,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.js"
     integrity="sha512-NLtnLBS9Q2w7GKK9rKxdtgL7rA7CAS85uC/0xd9im4J/yOL4F9ZVlv634NAM7run8hz3wI2GabaA6vv8vJtHiQ=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://bettar.life/vidometry/vidometer.1.0.10.js"></script>
+  <script src="https://bettar.life/vidometry/vidometer.1.0.16.js"></script>
   <script>
     class Scene3D {
       constructor(width, height, fov, canvas) {
@@ -130,6 +130,9 @@
     function initVidometer() {
       const canvas = document.getElementById('canvas-video');
       vidometer = this.document.createElement('vidometry-vidometer');
+      vidometer.setAttribute('initial-height', '1.3');
+      vidometer.setAttribute('object-tracking', true);
+
       document.body.appendChild(vidometer);
       vidometer.onReady = onVidometerReady;
       vidometer.onMotion = onVidometerMotion;
