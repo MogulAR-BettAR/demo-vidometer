@@ -1,4 +1,4 @@
-# vidometer v1.0.16
+# vidometer v2.0.1
 
 **vidometer** is a World Tracking feature of **bettar-vidometry** library.
 
@@ -11,48 +11,6 @@ This example project shows how to integrate a **vidometer** into your web applic
 
 You can check [live example](https://bettar.life/vidometer/).
 
-### Installation
-
-Execute the following command in order to install dependencies:
-
-```tsx
-npm i
-```
-
-or
-
-```tsx
-yarn install
-```
-
-### Development
-
-Execute the following command in order to run the application in development mode:
-
-*start-html* - runs example with static **vidometry-vidometer** tag;
-
-*start-prog* - runs example with **vidometer** programmatically added;
-
-```tsx
-npm run start-html
-// OR
-npm run start-prog
-```
-
-OR
-
-```tsx
-yarn start-html
-// OR
-yarn start-prog
-```
-
-Run the following URL on your mobile device:
-
-```tsx
-https://localhost:8080
-```
-
 # vidometer integration
 
 In order to add a **vidometer** to your site you need the following actions:
@@ -62,7 +20,7 @@ In order to add a **vidometer** to your site you need the following actions:
 ```tsx
 <head>
 	...
-	<script src="https://bettar.life/vidometry/vidometer.1.0.16.js"></script>
+	<script src="https://bettar.life/vidometry/vidometer.2.0.1.js"></script>
 	...
 </head>
 ```
@@ -101,41 +59,41 @@ document.body.appendChild(vidometer);
 
 1. Add **vidometer** callbacks:
     1. **onReady()** - throws when vidometer is initialized and ready to work;
-    2. **onMotion(rototranslation)** - uses to update 3d position of the object/objects on the scene. Throws every frame before starting;
+    2. **onKeyframe(result)** - throws as a response on the s**tart** method.
+        1. **result** - integer: 0, 1, or 100;
+            1. 0 - wrong orientation of the camera;
+            2. 1 - not enough features on the tracked plane;
+            3. 100 - keyframe is added;
+    3. **onProcess(rototranslation, objecRototranslation, focal)** - uses to update 3d position of the perspective camera of the scene and the object on the scene. Throws every frame;
         1. **rototranslation** - source of rototranslation matrix (4x4);
-    3. **onProcess(rototranslation, focal)** - uses to update 3d position of the perspective camera of the scene. Throws every frame;
-        1. **rototranslation** - source of rototranslation matrix (4x4);
-        2. **focal** - focal length of the perspective camera;
+        2. **objecRototranslation -** source of rototranslation matrix (4x4);
+        3. **focal** - focal length of the perspective camera;
+    4. **onCalibrate()** - throws when autocalibration is complete;
 
 ```jsx
 vidometer.onReady = onVidometerReady;
-vidometer.onMotion = onVidometerMotion;
+vidometer.onKeyframe = onVidometerKeyframe;
+vidometer.onCalibrate = onVidometerCalibrate;
 vidometer.onProcess = onVidometerProcess;
 ```
 
 1. Initialize **vidometer**:
     1. **sceneWidth** - width of the scene in pixels;
     2. **sceneHeight** - height of the scene in pixels;
-    3. **fov** - initial filed of view of the perspective camera (recommended value is 70);
+    3. **fov** - initial filed of view of the perspective camera (recommended value is 65);
     4. **videoCanvas** - reference to the canvas tag where video frame should be rendered;
 
 ```jsx
 vidometer.initialize(sceneWidth, sceneHeight, fov, videoCanvas);
 ```
 
-1. Start **vidometer** processing:
-    1. x - horizontal position on the scene(starting from the left side);
-    2. y - vertical position on the scene(starting from the top side);
-    3. roto - 3d position of the object/objects on the scene (source of ****rototranslation matrix);
+1. Add initial keyframe
     
-    If you use the preview mode of the model on the scene (show object position and orientation on the scene before starting), we recommend using starting position in the center of the screen:  **start(sceneWidth/2**, **sceneHeight/2)**.
+    While adding a keyframe, your device should be in a horizontal orientation (for better accuracy), and a horizontal plane with clearly visible texture should be within the camera view.
     
 
 ```tsx
-vidomter.start(x, y)
-	.then(roto => {
-		// object is located on the scene
-	});
+vidomter.start();
 ```
 
 You can also stop the processing of the vidometer
@@ -152,7 +110,7 @@ In order to resume vidometer processing, you need to call the resume method:
 vidometer.resume();
 ```
 
-After resuming the processing you need to call the **start** method to position the object on the scene.
+After resuming the processing you need to call the **start** method to add the initial keyframe.
 
 **Complete example with vidometry-vidometer tag:** 
 
@@ -166,7 +124,7 @@ After resuming the processing you need to call the **start** method to position 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.js"
     integrity="sha512-NLtnLBS9Q2w7GKK9rKxdtgL7rA7CAS85uC/0xd9im4J/yOL4F9ZVlv634NAM7run8hz3wI2GabaA6vv8vJtHiQ=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://bettar.life/vidometry/vidometer.1.0.8.js"></script>
+  <script src="https://bettar.life/vidometry/vidometer.2.0.1.js"></script>
   <script>
     class Scene3D {
       constructor(width, height, fov, canvas) {
@@ -187,7 +145,7 @@ After resuming the processing you need to call the **start** method to position 
 
         // 3. camera
         const aspect = width / height;
-        this.camera = new THREE.PerspectiveCamera(35/*fov*/, aspect, 0.01, 10000);
+        this.camera = new THREE.PerspectiveCamera(fov, aspect, 0.01, 10000);
         this.camera.filmGauge = Math.max(width, height);
         this.camera.updateProjectionMatrix();
         this.scene.add(this.camera);
@@ -254,34 +212,47 @@ After resuming the processing you need to call the **start** method to position 
     var scene, vidometer, width, height, fov;
     var isReady = false;
 
+    const setInfoText = (text) => {
+      const info = document.getElementById("info");
+      info.innerText = text;
+    }
+
     const onVidometerReady = () => {
       isReady = true;
+      setInfoText('Tap on the horizontal plane');
     }
 
-    const onVidometerMotion = (roto) => {
-      scene.updateObjectMatrix(roto);
+    const onVidometerKeyframe = (result) => {
+      if (result === 0) {
+        setInfoText('Wrong orientation');
+      } else if (result === 1) {
+        setInfoText('Not enough features');
+      } else if (result === 100) {
+        setInfoText('Keyframe is added');
+        isReady = true;
+      }
     }
 
-    const onVidometerProcess = (roto, focal) => {
+    const onVidometerCalibrate = () => {
+      setInfoText('Calibrated');
+    }
+
+    const onVidometerProcess = (roto, roto0, focal) => {
       scene.updateFocal(focal);
+      scene.updateObjectMatrix(roto0);
       scene.render(roto);
     }
 
     function onClick() {
       if (isReady) {
-        vidometer.start(width / 2 + 1, height / 2 + 1)
-					.then(roto => {
-            // scene.updateObjectMatrix(roto);
-            console.log('object is located on the scene');
-          });
+        vidometer.start();
       }
     }
 
     function init() {
+      fov = 65;
       width = window.innerWidth;
       height = window.innerHeight;
-      fov = 65;
-
       initVidometer();
       initScene();
     }
@@ -290,7 +261,8 @@ After resuming the processing you need to call the **start** method to position 
       const canvas = document.getElementById('canvas-video');
       vidometer = document.getElementById('vidometer');
       vidometer.onReady = onVidometerReady;
-      vidometer.onMotion = onVidometerMotion;
+      vidometer.onKeyframe = onVidometerKeyframe;
+      vidometer.onCalibrate = onVidometerCalibrate;
       vidometer.onProcess = onVidometerProcess;
       vidometer.initialize(width, height, fov, canvas);
     }
@@ -315,6 +287,9 @@ After resuming the processing you need to call the **start** method to position 
     <canvas id="canvas-video" style="position: absolute;"></canvas>
     <canvas id="canvas-gl" style="position: absolute; left: 0; top: 0; width: 100vw; height: 100vh;" width="100vw"
       height="100vh"></canvas>
+
+    <div id="info" style="position: absolute; left: 2vw; right: 2vw; top: 2vh; height: 20vw;  font-size: 2hv;">
+    </div>
   </div>
 </body>
 
@@ -327,12 +302,6 @@ src/index2.html - example of **vidometer** programmatically added;
 
 ## API
 
-### Attributes:
-
-**initial-height** (*number*) - vertical distance to the tracked plane in meters (optional, by default - *1.3m*);
-
-**object-tracking** (*boolean*) - uses if the object should locate in a limited area: table, etc. (optional by default - *false*).
-
 ### Methods:
 
 **initialize(sceneWidth, sceneHeight, fov, videoCanvas)** - initialize **vidometer**;
@@ -342,11 +311,7 @@ src/index2.html - example of **vidometer** programmatically added;
 3. ***fov*** - initial filed of view of the perspective camera (recommended value is 65);
 4. ***videoCanvas*** - reference to the canvas tag where video frame should be rendered;
 
-**start(x, y)** - starts **vidometer** processing:
-
-1. ***x*** - horizontal position on the scene(starting from the left side);
-2. ***y*** - vertical position on the scene(starting from the top side);
-3. returns **Promise<number[]> -** 3d position of the object/objects on the scene (source of ****rototranslation matrix);
+**start()** - add initial keyframe; while adding a keyframe, your device should be in a horizontal orientation (for better accuracy), and a horizontal plane with clearly visible texture should be within the camera view.
 
 **stop()** - stops **vidometer** processing;
 
@@ -360,9 +325,17 @@ src/index2.html - example of **vidometer** programmatically added;
 
 1. **rototranslation** - source of rototranslation matrix (4x4);
 
-**onProcess(rototranslation, focal)** - uses to update 3d position of the perspective camera of the scene. Throws every frame;
+**onProcess(rototranslation, objectRototranslation, focal)** - uses to update 3d position of the perspective camera of the scene and object on the scene. Throws every frame;
 
 1. **rototranslation** - source of rototranslation matrix (4x4);
-2. **focal** - focal length of the perspective camera;
+2. **objectRototranslation** - source of rototranslation matrix (4x4);
+3. **focal** - focal length of the perspective camera;
 
-**onStarted()** - throws once, when object is located on the scene;
+**onKeyframe(result)** - throws as a response on the s**tart** method.;
+
+1. **result** - integer: 0, 1, or 100;
+    1. 0 - wrong orientation of the camera;
+    2. 1 - not enough features on the tracked plane;
+    3. 100 - keyframe is added;
+
+**onCalibrate()** - throws when autocalibration is complete;

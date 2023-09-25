@@ -7,7 +7,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.js"
     integrity="sha512-NLtnLBS9Q2w7GKK9rKxdtgL7rA7CAS85uC/0xd9im4J/yOL4F9ZVlv634NAM7run8hz3wI2GabaA6vv8vJtHiQ=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://bettar.life/vidometry/vidometer.1.0.16.js"></script>
+  <script src="https://bettar.life/vidometry/vidometer.2.0.1.js"></script>
   <script>
     class Scene3D {
       constructor(width, height, fov, canvas) {
@@ -95,34 +95,47 @@
     var scene, vidometer, width, height, fov;
     var isReady = false;
 
+    const setInfoText = (text) => {
+      const info = document.getElementById("info");
+      info.innerText = text;
+    }
+
     const onVidometerReady = () => {
       isReady = true;
+      setInfoText('Tap on the horizontal plane');
     }
 
-    const onVidometerMotion = (roto) => {
-      scene.updateObjectMatrix(roto);
+    const onVidometerKeyframe = (result) => {
+      if (result === 0) {
+        setInfoText('Wrong orientation');
+      } else if (result === 1) {
+        setInfoText('Not enough features');
+      } else if (result === 100) {
+        setInfoText('Keyframe is added');
+        isReady = true;
+      }
     }
 
-    const onVidometerProcess = (roto, focal) => {
+    const onVidometerCalibrate = () => {
+      setInfoText('Calibrated');
+    }
+
+    const onVidometerProcess = (roto, roto0, focal) => {
       scene.updateFocal(focal);
+      scene.updateObjectMatrix(roto0);
       scene.render(roto);
     }
 
     function onClick() {
       if (isReady) {
-        vidometer.start(width / 2 + 1, height / 2 + 1)
-          .then(roto => {
-            scene.updateObjectMatrix(roto);
-            console.log('object is located on the scene');
-          });
+        vidometer.start();
       }
     }
 
     function init() {
+      fov = 65;
       width = window.innerWidth;
       height = window.innerHeight;
-      fov = 65;
-
       initVidometer();
       initScene();
     }
@@ -131,7 +144,8 @@
       const canvas = document.getElementById('canvas-video');
       vidometer = document.getElementById('vidometer');
       vidometer.onReady = onVidometerReady;
-      vidometer.onMotion = onVidometerMotion;
+      vidometer.onKeyframe = onVidometerKeyframe;
+      vidometer.onCalibrate = onVidometerCalibrate;
       vidometer.onProcess = onVidometerProcess;
       vidometer.initialize(width, height, fov, canvas);
     }
@@ -152,10 +166,13 @@
 
 <body onload="init();" onclick="onClick();">
   <div style="position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;" scrolling="no">
-    <vidometry-vidometer id="vidometer" initial-height="1.3" object-tracking></vidometry-vidometer>
+    <vidometry-vidometer id="vidometer"></vidometry-vidometer>
     <canvas id="canvas-video" style="position: absolute;"></canvas>
     <canvas id="canvas-gl" style="position: absolute; left: 0; top: 0; width: 100vw; height: 100vh;" width="100vw"
       height="100vh"></canvas>
+
+    <div id="info" style="position: absolute; left: 2vw; right: 2vw; top: 2vh; height: 20vw;  font-size: 2hv;">
+    </div>
   </div>
 </body>
 
