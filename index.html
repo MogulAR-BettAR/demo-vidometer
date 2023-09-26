@@ -94,6 +94,7 @@
 
     var scene, vidometer, width, height, fov;
     var isReady = false;
+    var stopState = true;
 
     const setInfoText = (text) => {
       const info = document.getElementById("info");
@@ -103,9 +104,14 @@
     const onVidometerReady = () => {
       isReady = true;
       setInfoText('Tap on the horizontal plane');
+
+
     }
 
     const onVidometerKeyframe = (result) => {
+      if (!stopState) {
+        return;
+      }
       if (result === 0) {
         setInfoText('Wrong orientation');
       } else if (result === 1) {
@@ -129,6 +135,23 @@
     function onClick() {
       if (isReady) {
         vidometer.start();
+      }
+    }
+
+    function onStopResumeClick() {
+      const button = document.getElementById("stopResumeButton");
+      if (stopState) {
+        vidometer.stop()
+          .then(() => {
+            stopState = false;
+            button.innerText = 'Resume';
+            setInfoText('Stopped');
+          })
+      } else {
+        vidometer.resume();
+        stopState = true;
+        button.innerText = 'Stop';
+        setInfoText('Tap on the horizontal plane');
       }
     }
 
@@ -172,6 +195,11 @@
       height="100vh"></canvas>
 
     <div id="info" style="position: absolute; left: 2vw; right: 2vw; top: 2vh; height: 20vw;  font-size: 2hv;">
+    </div>
+
+    <div id="stopResumeButton" onclick="onStopResumeClick()"
+      style="position: absolute; right: 2vw; top: 5vh;  padding-left: 4vw; padding-right: 4vw; font-size: 2hv; padding-top: 1vh; padding-bottom: 1vh; background: #FFF; border: solid 1px #000;">
+      Stop
     </div>
   </div>
 </body>
