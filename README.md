@@ -1,4 +1,4 @@
-# vidometer v2.0.1
+# vidometer v2.0.2
 
 **vidometer** is a World Tracking feature of **bettar-vidometry** library.
 
@@ -20,7 +20,7 @@ In order to add a **vidometer** to your site you need the following actions:
 ```tsx
 <head>
 	...
-	<script src="https://bettar.life/vidometry/vidometer.2.0.1.js"></script>
+	<script src="https://bettar.life/vidometry/vidometer.2.0.2.js"></script>
 	...
 </head>
 ```
@@ -124,7 +124,7 @@ After resuming the processing you need to call the **start** method to add the i
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.js"
     integrity="sha512-NLtnLBS9Q2w7GKK9rKxdtgL7rA7CAS85uC/0xd9im4J/yOL4F9ZVlv634NAM7run8hz3wI2GabaA6vv8vJtHiQ=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://bettar.life/vidometry/vidometer.2.0.1.js"></script>
+  <script src="https://bettar.life/vidometry/vidometer.2.0.2.js"></script>
   <script>
     class Scene3D {
       constructor(width, height, fov, canvas) {
