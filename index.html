@@ -132,9 +132,9 @@
       scene.render(roto);
     }
 
-    function onClick() {
+    function onClick(e) {
       if (isReady) {
-        vidometer.start();
+        vidometer.start(e.clientX, e.clientY);
       }
     }
 
@@ -187,7 +187,7 @@
   </script>
 </head>
 
-<body onload="init();" onclick="onClick();">
+<body onload="init();" onclick="onClick(event, this);">
   <div style="position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;" scrolling="no">
     <vidometry-vidometer id="vidometer"></vidometry-vidometer>
     <canvas id="canvas-video" style="position: absolute;"></canvas>

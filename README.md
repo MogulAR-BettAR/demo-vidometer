@@ -281,7 +281,7 @@ After resuming the processing you need to call the **start** method to add the i
   </script>
 </head>
 
-<body onload="init();" onclick="onClick();">
+<body onload="init();" onclick="onClick(event, this);">
   <div style="position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;" scrolling="no">
     <vidometry-vidometer id="vidometer"></vidometry-vidometer>
     <canvas id="canvas-video" style="position: absolute;"></canvas>
