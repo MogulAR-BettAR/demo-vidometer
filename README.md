@@ -1,4 +1,4 @@
-# vidometer v2.0.2
+# vidometer v2.0.3
 
 **vidometer** is a World Tracking feature of **bettar-vidometry** library.
 
