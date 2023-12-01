@@ -134,7 +134,9 @@
 
     function onClick(e) {
       if (isReady) {
-        vidometer.start(e.clientX, e.clientY);
+        const u = e.clientX;
+        const v = e.clientY;
+        vidometer.start();
       }
     }
 

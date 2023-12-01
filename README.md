@@ -243,8 +243,10 @@ After resuming the processing you need to call the **start** method to add the i
       scene.render(roto);
     }
 
-    function onClick() {
+    function onClick(e) {
       if (isReady) {
+        const u = e.clientX;
+        const v = e.clientY;
         vidometer.start();
       }
     }
