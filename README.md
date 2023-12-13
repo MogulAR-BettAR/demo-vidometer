@@ -1,4 +1,4 @@
-# vidometer v2.0.3
+# vidometer v2.1.0
 
 **vidometer** is a World Tracking feature of **bettar-vidometry** library.
 
@@ -20,7 +20,7 @@ In order to add a **vidometer** to your site you need the following actions:
 ```tsx
 <head>
 	...
-	<script src="https://bettar.life/vidometry/vidometer.2.0.2.js"></script>
+	<script src="https://bettar.life/vidometry/vidometer.2.1.0.js"></script>
 	...
 </head>
 ```
@@ -34,12 +34,6 @@ In order to add a **vidometer** to your site you need the following actions:
 <vidometry-vidometer id="vidometer"></vidometry-vidometer>
 ```
 
-or with attributes:
-
-```jsx
-<vidometry-vidometer id="vidometer" initial-height="1.3" object-tracking></vidometry-vidometer>
-```
-
 b. add vidometry-vidometer programmatically:
 
 ```tsx
@@ -47,62 +41,58 @@ vidometer = this.document.createElement('vidometry-vidometer');
 document.body.appendChild(vidometer);
 ```
 
-or with attributes:
-
-```jsx
-
-vidometer = this.document.createElement('vidometry-vidometer');
-vidometer.setAttribute('initial-height', '1.3');
-vidometer.setAttribute('object-tracking', true);
-document.body.appendChild(vidometer);
-```
-
 1. Add **vidometer** callbacks:
-    1. **onReady()** - throws when vidometer is initialized and ready to work;
-    2. **onKeyframe(result)** - throws as a response on the s**tart** method.
-        1. **result** - integer: 0, 1, or 100;
-            1. 0 - wrong orientation of the camera;
-            2. 1 - not enough features on the tracked plane;
-            3. 100 - keyframe is added;
-    3. **onProcess(rototranslation, objecRototranslation, focal)** - uses to update 3d position of the perspective camera of the scene and the object on the scene. Throws every frame;
-        1. **rototranslation** - source of rototranslation matrix (4x4);
-        2. **objecRototranslation -** source of rototranslation matrix (4x4);
-        3. **focal** - focal length of the perspective camera;
-    4. **onCalibrate()** - throws when autocalibration is complete;
+    1. **onReady()** - throws when Vidometer is initialized and ready to work;
+    2. **onKeyframeSearching(code, text)** - throws when Vidometer tries to search initial keyframe;
+        1. **code** - integer, response code (see Vidometer Code Response);
+            1. 1 - NOT_ENOUGH_FEATURES - means that the surface doesn’t have enough features to be used as a keyframe;
+            2. 11 - WRONG_ORIENTATION_X - in this case, orientation of X axis of the phone (or the pitch, see Phone Orientation) - the angle between the phone and the floor should be 35 degrees (parallel to the floor);
+            3. 100 - COMPLETE - calibrated;
+        2. **text** - string, text description of the code;
+    3. **onCalibration(code, text)** - throws when Vidometer tries to calibrate;
+        1. **code** - integer, response code (see Vidometer Code Response);
+            1. 1 - NOT_ENOUGH_FEATURES - means that the surface doesn’t have enough features to be used as a keyframe;
+            2. 11 - WRONG_ORIENTATION_X - in this case, the orientation of the X axis of the phone (or the pitch, see Phone Orientation) - the angle between the phone and the floor should be 0 degrees (parallel to the floor);
+            3. 13 - WRONG_ORIENTATION_Z - in this case, the orientation of the Z axis of the phone (or the roll, see Phone Orientation) should be close to 0 degrees;
+            4. 100 - COMPLETE - keyframe is found;
+        2. **text** - string, text description of the code;
+    4. **onStarting(code, text)** - throws as a response on the start method when Vidometer tries to place the object on the searched plane;
+    5. **onProcess(rototranslation, objecRototranslation, fov)** - used to update the 3d position of the perspective camera of the scene and the object on the scene. Throws every frame;
+        1. **rototranslation** - source of roto-translation matrix (4x4);
+        2. **objecRototranslation -** source of roto-translation matrix (4x4);
+        3. **fov** - field of view of the perspective camera;
 
 ```jsx
 vidometer.onReady = onVidometerReady;
-vidometer.onKeyframe = onVidometerKeyframe;
-vidometer.onCalibrate = onVidometerCalibrate;
+vidometer.onKeyframeSearching = onVidometerKeyframeSearching;
+vidometer.onCalibration = onVidometerCalibration;
+vidometer.onStarting = onVidometerStarting;
 vidometer.onProcess = onVidometerProcess;
 ```
 
 1. Initialize **vidometer**:
     1. **sceneWidth** - width of the scene in pixels;
     2. **sceneHeight** - height of the scene in pixels;
-    3. **fov** - initial filed of view of the perspective camera (recommended value is 65);
-    4. **videoCanvas** - reference to the canvas tag where video frame should be rendered;
+    3. **videoCanvas** - reference to the canvas tag where video frame should be rendered;
 
 ```jsx
-vidometer.initialize(sceneWidth, sceneHeight, fov, videoCanvas);
+vidometer.initialize(sceneWidth, sceneHeight, videoCanvas);
 ```
 
-1. Add initial keyframe
+1. Placing object on the surface
     
-    While adding a keyframe, your device should be in a horizontal orientation (for better accuracy), and a horizontal plane with clearly visible texture should be within the camera view.
+    While Vidometer is calibrated, you need call the **start** method and pass the point on the scene; **u** - x screen’s coordinate, **v** - y screen’s coordinate, origin - top left corner on the screen:
     
 
 ```tsx
-vidomter.start();
+vidomter.start(u, v);
 ```
 
-You can also stop the processing of the vidometer
+You can also stop and clear the processing of the Vidometer
 
 ```jsx
 vidometer.stop();
 ```
-
-It stops all computations and reduces the load on the processor (you can use it if you want to pause your experience).
 
 In order to resume vidometer processing, you need to call the resume method:
 
@@ -110,7 +100,7 @@ In order to resume vidometer processing, you need to call the resume method:
 vidometer.resume();
 ```
 
-After resuming the processing you need to call the **start** method to add the initial keyframe.
+After resuming the tracking process will be completely restarting.
 
 **Complete example with vidometry-vidometer tag:** 
 
@@ -124,11 +114,12 @@ After resuming the processing you need to call the **start** method to add the i
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.js"
     integrity="sha512-NLtnLBS9Q2w7GKK9rKxdtgL7rA7CAS85uC/0xd9im4J/yOL4F9ZVlv634NAM7run8hz3wI2GabaA6vv8vJtHiQ=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://bettar.life/vidometry/vidometer.2.0.3.js"></script>
+  <script src="https://bettar.life/vidometry/vidometer.2.1.0.js"></script>
   <script>
+
     class Scene3D {
-      constructor(width, height, fov, canvas) {
-        this.fov = fov;
+      constructor(width, height, canvas) {
+        this.fov = 70;
         this.width = width;
         this.height = height;
 
@@ -145,8 +136,10 @@ After resuming the processing you need to call the **start** method to add the i
 
         // 3. camera
         const aspect = width / height;
-        this.camera = new THREE.PerspectiveCamera(fov, aspect, 0.01, 10000);
+        this.camera = new THREE.PerspectiveCamera(this.fov, aspect, 0.01, 10000);
         this.camera.filmGauge = Math.max(width, height);
+        var focal = this.fovToFocal(this.fov, this.width, this.height);
+        this.camera.setFocalLength(focal);
         this.camera.updateProjectionMatrix();
         this.scene.add(this.camera);
 
@@ -157,9 +150,17 @@ After resuming the processing you need to call the **start** method to add the i
         this.scene.add(this.container);
       }
 
-      updateFocal(focal) {
-        if (this.focal !== focal) {
-          this.focal = focal;
+      fovToFocal(fov, width, height) {
+        var DEG2RAD = Math.PI / 180;
+        const vExtentSlope = Math.tan(DEG2RAD * 0.5 * fov);
+        const side = Math.max(width, height);
+        return 0.5 * side / vExtentSlope;
+      };
+
+      updateFieldOfView(fov) {
+        if (this.fov !== fov) {
+          this.fov = fov;
+          var focal = this.fovToFocal(this.fov, this.width, this.height);
           this.camera.setFocalLength(focal);
           this.camera.updateProjectionMatrix();
         }
@@ -209,8 +210,11 @@ After resuming the processing you need to call the **start** method to add the i
 
     };
 
-    var scene, vidometer, width, height, fov;
+    var scene, vidometer, width, height;
     var isReady = false;
+    var isCalibrated = false;
+    var isTracking = false;
+    var stopState = true;
 
     const setInfoText = (text) => {
       const info = document.getElementById("info");
@@ -219,16 +223,38 @@ After resuming the processing you need to call the **start** method to add the i
 
     const onVidometerReady = () => {
       isReady = true;
-      setInfoText('Tap on the horizontal plane');
+      setInfoText('Ready');
     }
 
-    const onVidometerKeyframe = (result) => {
-      if (result === 0) {
-        setInfoText('Wrong orientation');
-      } else if (result === 1) {
-        setInfoText('Not enough features');
-      } else if (result === 100) {
-        setInfoText('Keyframe is added');
+    /**
+     * Event handler on keyframe searching event
+     * @param {number} code - 0 - UNDEFINED, 1 - NOT_ENOUGH_FEATURES, 11 - WRONG_ORIENTATION_X, 13 - WRONG_ORIENTATION_Z, 100 - COMPLETE;
+     * @param {string} text - text description;
+     */
+    const onVidometerKeyframeSearching = (code, text) => {
+      setInfoText(text);
+    };
+
+    /**
+     * Event handler on calibration event
+     * @param {number} code - 0 - UNDEFINED, 1 - NOT_ENOUGH_FEATURES, 11 - WRONG_ORIENTATION_X, 13 - WRONG_ORIENTATION_Z, 100 - COMPLETE;
+     * @param {string} text - text description;
+     */
+    const onVidometerCalibration = (code, text) => {
+      setInfoText(text);
+      if (code === 100) {
+        isCalibrated = true;
+      }
+    };
+
+    /**
+     * Event handler on calibration event
+     * @param {number} code - 0 - UNDEFINED, 1 - NOT_ENOUGH_FEATURES, 11 - WRONG_ORIENTATION_X, 13 - WRONG_ORIENTATION_Z, 100 - COMPLETE;
+     * @param {string} text - text description;
+     */
+    const onVidometerStarting = (code, text) => {
+      setInfoText(text);
+      if (result === 100) {
         isReady = true;
       }
     }
@@ -237,22 +263,38 @@ After resuming the processing you need to call the **start** method to add the i
       setInfoText('Calibrated');
     }
 
-    const onVidometerProcess = (roto, roto0, focal) => {
-      scene.updateFocal(focal);
+    const onVidometerProcess = (roto, roto0, fov) => {
+      scene.updateFieldOfView(fov);
       scene.updateObjectMatrix(roto0);
       scene.render(roto);
     }
 
     function onClick(e) {
-      if (isReady) {
+      if (isCalibrated) {
         const u = e.clientX;
         const v = e.clientY;
-        vidometer.start();
+        vidometer.start(u, v);
+      }
+    }
+
+    function onStopResumeClick() {
+      const button = document.getElementById("stopResumeButton");
+      if (stopState) {
+        vidometer.stop()
+          .then(() => {
+            stopState = false;
+            button.innerText = 'Resume';
+            setInfoText('Stopped');
+          })
+      } else {
+        vidometer.resume();
+        stopState = true;
+        button.innerText = 'Stop';
+        setInfoText('Ready');
       }
     }
 
     function init() {
-      fov = 65;
       width = window.innerWidth;
       height = window.innerHeight;
       initVidometer();
@@ -263,17 +305,18 @@ After resuming the processing you need to call the **start** method to add the i
       const canvas = document.getElementById('canvas-video');
       vidometer = document.getElementById('vidometer');
       vidometer.onReady = onVidometerReady;
-      vidometer.onKeyframe = onVidometerKeyframe;
-      vidometer.onCalibrate = onVidometerCalibrate;
+      vidometer.onKeyframeSearching = onVidometerKeyframeSearching;
+      vidometer.onCalibration = onVidometerCalibration;
+      vidometer.onStarting = onVidometerStarting;
       vidometer.onProcess = onVidometerProcess;
-      vidometer.initialize(width, height, fov, canvas);
+      vidometer.initialize(width, height, canvas);
     }
 
     function initScene() {
       const canvas = document.getElementById('canvas-gl');
       canvas.width = width;
       canvas.height = height;
-      scene = new Scene3D(width, height, fov, canvas);
+      scene = new Scene3D(width, height, canvas);
 
       const cube = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.01, 0.5), new THREE.MeshNormalMaterial());
       cube.position.setY(0.005)
@@ -292,28 +335,33 @@ After resuming the processing you need to call the **start** method to add the i
 
     <div id="info" style="position: absolute; left: 2vw; right: 2vw; top: 2vh; height: 20vw;  font-size: 2hv;">
     </div>
+
+    <div id="stopResumeButton" onclick="onStopResumeClick()"
+      style="position: absolute; right: 2vw; top: 5vh;  padding-left: 4vw; padding-right: 4vw; font-size: 2hv; padding-top: 1vh; padding-bottom: 1vh; background: #FFF; border: solid 1px #000;">
+      Stop
+    </div>
   </div>
 </body>
 
 </html>
 ```
 
-src/index.html - example with static **vidometry-vidometer** tag;
-
-src/index2.html - example of **vidometer** programmatically added;
-
 ## API
 
 ### Methods:
 
-**initialize(sceneWidth, sceneHeight, fov, videoCanvas)** - initialize **vidometer**;
+**initialize(sceneWidth, sceneHeight, videoCanvas)** - initialize **vidometer**;
 
-1. ***sceneWidth*** - width of the scene in pixels;
-2. ***sceneHeight*** - height of the scene in pixels;
-3. ***fov*** - initial filed of view of the perspective camera (recommended value is 65);
-4. ***videoCanvas*** - reference to the canvas tag where video frame should be rendered;
+1. ***sceneWidth*** - the width of the scene in pixels;
+2. ***sceneHeight*** - the height of the scene in pixels;
+3. ***videoCanvas*** - a reference to the canvas tag where the video frame should be rendered;
 
-**start()** - add initial keyframe; while adding a keyframe, your device should be in a horizontal orientation (for better accuracy), and a horizontal plane with clearly visible texture should be within the camera view.
+**start(u, v)** - try to locate the object on the surface;
+
+1. **u** - x screen’s coordinate;
+2.  **v** - y screen’s coordinate;
+
+origin - top left corner of the screen:
 
 **stop()** - stops **vidometer** processing;
 
@@ -321,23 +369,51 @@ src/index2.html - example of **vidometer** programmatically added;
 
 ### Callbacks
 
-**onReady()** - throws when vidometer is initialized and ready to work;
+**onReady()** - throws when the Vidometer is initialized and ready to work;
 
-**onMotion(rototranslation)** - uses to update 3d position of the object/objects on the scene. Throws every frame before starting;
+**onKeyframeSearching(code, text)** - throws when the Vidometer tries to search the initial keyframe;
 
-1. **rototranslation** - source of rototranslation matrix (4x4);
+1. **code** - integer, response code (see Vidometer Code Response);
+    1. 1 - NOT_ENOUGH_FEATURES - means that the surface doesn’t have enough features to be used as a keyframe;
+    2. 11 - WRONG_ORIENTATION_X - in this case, the orientation of the X axis of the phone (or the pitch, see Phone Orientation) - the angle between the phone and the floor should be 35 degrees;
+    3. 100 - COMPLETE - calibrated;
+2. **text** - string, text description of the code;
 
-**onProcess(rototranslation, objectRototranslation, focal)** - uses to update 3d position of the perspective camera of the scene and object on the scene. Throws every frame;
+**onCalibration(code, text)** - throws when Vidometer tries to calibrate;
 
-1. **rototranslation** - source of rototranslation matrix (4x4);
-2. **objectRototranslation** - source of rototranslation matrix (4x4);
-3. **focal** - focal length of the perspective camera;
+1. **code** - integer, response code (see Vidometer Code Response);
+    1. 1 - NOT_ENOUGH_FEATURES - means that the surface doesn’t have enough features to be used as a keyframe;
+    2. 11 - WRONG_ORIENTATION_X - in this case, the orientation of the X axis of the phone (or the pitch, see Phone Orientation) - the angle between the phone and the floor should be 0 degrees (parallel to the floor);
+    3. 13 - WRONG_ORIENTATION_Z - in this case, the orientation of the Z axis of the phone (or the roll, see Phone Orientation) should be close to 0 degrees;
+    4. 100 - COMPLETE - keyframe is found;
+2. **text** - string, text description of the code;
 
-**onKeyframe(result)** - throws as a response on the s**tart** method.;
+**onStarting(code, text)** - throws as a response on the start method when the Vidometer tries to place the object on the searched plane;
 
-1. **result** - integer: 0, 1, or 100;
-    1. 0 - wrong orientation of the camera;
-    2. 1 - not enough features on the tracked plane;
-    3. 100 - keyframe is added;
+1. **code** - integer, response code (see Vidometer Code Response);
+    1. 1 - NOT_ENOUGH_FEATURES - means that the surface doesn’t have enough features to be used as a keyframe;
+    2. 11 - WRONG_ORIENTATION_X - in this case, the orientation of the X axis of the phone (or the pitch, see Phone Orientation) - the angle between the phone and the floor, should be less than 60 degrees;
+    3. 100 - COMPLETE - object is located;
+2. **text** - string, text description of the code;
 
-**onCalibrate()** - throws when autocalibration is complete;
+**onProcess(rototranslation, objecRototranslation, fov)** - used to update the 3d position of the perspective camera and the object on the scene. Throws every frame;
+
+1. **rototranslation** - the source of the roto-translation matrix (4x4);
+2. **objecRototranslation -** source of roto-translation matrix (4x4);
+3. **fov** - field of view of the perspective camera;
+
+**Vidometer Response Code:**
+
+0 - UNDEFINED;
+
+1 - NOT_ENOUGH_FEATURES - means that the surface doesn’t have enough features to be used as a keyframe;
+
+11 - WRONG_ORIENTATION_X - in this case, the orientation of the X axis of the phone (or the pitch, see Phone Orientation) - the angle between the phone and the floor should be 0 degrees (parallel to the floor);
+
+13 - WRONG_ORIENTATION_Z - in this case, the orientation of the Z axis of the phone (or the roll, see Phone Orientation) should be close to 0 degrees;
+
+100 - COMPLETE - keyframe is found;
+
+## Phone Orientation
+
+![phone orientation](https://bettar.life/vidometry/assets/phone_orientation.png)

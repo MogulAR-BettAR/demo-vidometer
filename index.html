@@ -7,11 +7,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.js"
     integrity="sha512-NLtnLBS9Q2w7GKK9rKxdtgL7rA7CAS85uC/0xd9im4J/yOL4F9ZVlv634NAM7run8hz3wI2GabaA6vv8vJtHiQ=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://bettar.life/vidometry/vidometer.2.0.3.js"></script>
+  <script src="https://bettar.life/vidometry/vidometer.2.1.0.js"></script>
   <script>
+
     class Scene3D {
-      constructor(width, height, fov, canvas) {
-        this.fov = fov;
+      constructor(width, height, canvas) {
+        this.fov = 70;
         this.width = width;
         this.height = height;
 
@@ -28,8 +29,10 @@
 
         // 3. camera
         const aspect = width / height;
-        this.camera = new THREE.PerspectiveCamera(fov, aspect, 0.01, 10000);
+        this.camera = new THREE.PerspectiveCamera(this.fov, aspect, 0.01, 10000);
         this.camera.filmGauge = Math.max(width, height);
+        var focal = this.fovToFocal(this.fov, this.width, this.height);
+        this.camera.setFocalLength(focal);
         this.camera.updateProjectionMatrix();
         this.scene.add(this.camera);
 
@@ -40,9 +43,17 @@
         this.scene.add(this.container);
       }
 
-      updateFocal(focal) {
-        if (this.focal !== focal) {
-          this.focal = focal;
+      fovToFocal(fov, width, height) {
+        var DEG2RAD = Math.PI / 180;
+        const vExtentSlope = Math.tan(DEG2RAD * 0.5 * fov);
+        const side = Math.max(width, height);
+        return 0.5 * side / vExtentSlope;
+      };
+
+      updateFieldOfView(fov) {
+        if (this.fov !== fov) {
+          this.fov = fov;
+          var focal = this.fovToFocal(this.fov, this.width, this.height);
           this.camera.setFocalLength(focal);
           this.camera.updateProjectionMatrix();
         }
@@ -92,8 +103,10 @@
 
     };
 
-    var scene, vidometer, width, height, fov;
+    var scene, vidometer, width, height;
     var isReady = false;
+    var isCalibrated = false;
+    var isTracking = false;
     var stopState = true;
 
     const setInfoText = (text) => {
@@ -103,21 +116,38 @@
 
     const onVidometerReady = () => {
       isReady = true;
-      setInfoText('Tap on the horizontal plane');
-
-
+      setInfoText('Ready');
     }
 
-    const onVidometerKeyframe = (result) => {
-      if (!stopState) {
-        return;
+    /**
+     * Event handler on keyframe searching event
+     * @param {number} code - 0 - UNDEFINED, 1 - NOT_ENOUGH_FEATURES, 11 - WRONG_ORIENTATION_X, 13 - WRONG_ORIENTATION_Z, 100 - COMPLETE;
+     * @param {string} text - text description;
+     */
+    const onVidometerKeyframeSearching = (code, text) => {
+      setInfoText(text);
+    };
+
+    /**
+     * Event handler on calibration event
+     * @param {number} code - 0 - UNDEFINED, 1 - NOT_ENOUGH_FEATURES, 11 - WRONG_ORIENTATION_X, 13 - WRONG_ORIENTATION_Z, 100 - COMPLETE;
+     * @param {string} text - text description;
+     */
+    const onVidometerCalibration = (code, text) => {
+      setInfoText(text);
+      if (code === 100) {
+        isCalibrated = true;
       }
-      if (result === 0) {
-        setInfoText('Wrong orientation');
-      } else if (result === 1) {
-        setInfoText('Not enough features');
-      } else if (result === 100) {
-        setInfoText('Keyframe is added');
+    };
+
+    /**
+     * Event handler on calibration event
+     * @param {number} code - 0 - UNDEFINED, 1 - NOT_ENOUGH_FEATURES, 11 - WRONG_ORIENTATION_X, 13 - WRONG_ORIENTATION_Z, 100 - COMPLETE;
+     * @param {string} text - text description;
+     */
+    const onVidometerStarting = (code, text) => {
+      setInfoText(text);
+      if (result === 100) {
         isReady = true;
       }
     }
@@ -126,17 +156,17 @@
       setInfoText('Calibrated');
     }
 
-    const onVidometerProcess = (roto, roto0, focal) => {
-      scene.updateFocal(focal);
+    const onVidometerProcess = (roto, roto0, fov) => {
+      scene.updateFieldOfView(fov);
       scene.updateObjectMatrix(roto0);
       scene.render(roto);
     }
 
     function onClick(e) {
-      if (isReady) {
+      if (isCalibrated) {
         const u = e.clientX;
         const v = e.clientY;
-        vidometer.start();
+        vidometer.start(u, v);
       }
     }
 
@@ -153,12 +183,11 @@
         vidometer.resume();
         stopState = true;
         button.innerText = 'Stop';
-        setInfoText('Tap on the horizontal plane');
+        setInfoText('Ready');
       }
     }
 
     function init() {
-      fov = 65;
       width = window.innerWidth;
       height = window.innerHeight;
       initVidometer();
@@ -169,17 +198,18 @@
       const canvas = document.getElementById('canvas-video');
       vidometer = document.getElementById('vidometer');
       vidometer.onReady = onVidometerReady;
-      vidometer.onKeyframe = onVidometerKeyframe;
-      vidometer.onCalibrate = onVidometerCalibrate;
+      vidometer.onKeyframeSearching = onVidometerKeyframeSearching;
+      vidometer.onCalibration = onVidometerCalibration;
+      vidometer.onStarting = onVidometerStarting;
       vidometer.onProcess = onVidometerProcess;
-      vidometer.initialize(width, height, fov, canvas);
+      vidometer.initialize(width, height, canvas);
     }
 
     function initScene() {
       const canvas = document.getElementById('canvas-gl');
       canvas.width = width;
       canvas.height = height;
-      scene = new Scene3D(width, height, fov, canvas);
+      scene = new Scene3D(width, height, canvas);
 
       const cube = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.01, 0.5), new THREE.MeshNormalMaterial());
       cube.position.setY(0.005)
