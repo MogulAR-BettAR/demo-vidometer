@@ -1,4 +1,4 @@
-# vidometer v2.1.0
+# vidometer v2.1.1
 
 **vidometer** is a World Tracking feature of **bettar-vidometry** library.
 
@@ -20,7 +20,7 @@ In order to add a **vidometer** to your site you need the following actions:
 ```tsx
 <head>
 	...
-	<script src="https://bettar.life/vidometry/vidometer.2.1.0.js"></script>
+	<script src="https://bettar.life/vidometry/vidometer.2.1.1.js"></script>
 	...
 </head>
 ```
@@ -56,8 +56,7 @@ document.body.appendChild(vidometer);
             3. 13 - WRONG_ORIENTATION_Z - in this case, the orientation of the Z axis of the phone (or the roll, see Phone Orientation) should be close to 0 degrees;
             4. 100 - COMPLETE - keyframe is found;
         2. **text** - string, text description of the code;
-    4. **onStarting(code, text)** - throws as a response on the start method when Vidometer tries to place the object on the searched plane;
-    5. **onProcess(rototranslation, objecRototranslation, fov)** - used to update the 3d position of the perspective camera of the scene and the object on the scene. Throws every frame;
+    4. **onProcess(rototranslation, objecRototranslation, fov)** - used to update the 3d position of the perspective camera of the scene and the object on the scene. Throws every frame;
         1. **rototranslation** - source of roto-translation matrix (4x4);
         2. **objecRototranslation -** source of roto-translation matrix (4x4);
         3. **fov** - field of view of the perspective camera;
@@ -66,11 +65,10 @@ document.body.appendChild(vidometer);
 vidometer.onReady = onVidometerReady;
 vidometer.onKeyframeSearching = onVidometerKeyframeSearching;
 vidometer.onCalibration = onVidometerCalibration;
-vidometer.onStarting = onVidometerStarting;
 vidometer.onProcess = onVidometerProcess;
 ```
 
-1. Initialize **vidometer**:
+1. Initialize the Vidometer:
     1. **sceneWidth** - width of the scene in pixels;
     2. **sceneHeight** - height of the scene in pixels;
     3. **videoCanvas** - reference to the canvas tag where video frame should be rendered;
@@ -81,12 +79,24 @@ vidometer.initialize(sceneWidth, sceneHeight, videoCanvas);
 
 1. Placing object on the surface
     
-    While Vidometer is calibrated, you need call the **start** method and pass the point on the scene; **u** - x screen’s coordinate, **v** - y screen’s coordinate, origin - top left corner on the screen:
+    While the Vidometer is calibrated, you need call the **start** method and pass the point on the scene; **u** - x screen’s coordinate, **v** - y screen’s coordinate, origin - top left corner on the screen:
     
 
 ```tsx
-vidomter.start(u, v);
+vidomter.start(u, v)
+	.then(response => {
+		const {code, text} = response;
+		// handle response
+});
 ```
+
+   a. **code** - integer, response code (see Vidometer Code Response);
+
+1. 1 - NOT_ENOUGH_FEATURES - means that the surface where you can place an object doesn’t have enough features;
+2. 11 - WRONG_ORIENTATION_X - in this case, the orientation of the X axis of the phone (or the pitch, see Phone Orientation) - the angle between the phone and the floor should be not more than 60 degrees (relative to the floor);
+3. 100 - COMPLETE - keyframe is found;
+
+  b. **text** - string, text description of the code;
 
 You can also stop and clear the processing of the Vidometer
 
@@ -114,7 +124,7 @@ After resuming the tracking process will be completely restarting.
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.js"
     integrity="sha512-NLtnLBS9Q2w7GKK9rKxdtgL7rA7CAS85uC/0xd9im4J/yOL4F9ZVlv634NAM7run8hz3wI2GabaA6vv8vJtHiQ=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://bettar.life/vidometry/vidometer.2.1.0.js"></script>
+  <script src="https://bettar.life/vidometry/vidometer.2.1.1.js"></script>
   <script>
 
     class Scene3D {
@@ -248,7 +258,7 @@ After resuming the tracking process will be completely restarting.
     };
 
     /**
-     * Event handler on calibration event
+     * Function that handles the starting
      * @param {number} code - 0 - UNDEFINED, 1 - NOT_ENOUGH_FEATURES, 11 - WRONG_ORIENTATION_X, 13 - WRONG_ORIENTATION_Z, 100 - COMPLETE;
      * @param {string} text - text description;
      */
@@ -273,7 +283,11 @@ After resuming the tracking process will be completely restarting.
       if (isCalibrated) {
         const u = e.clientX;
         const v = e.clientY;
-        vidometer.start(u, v);
+        vidometer.start(u, v)
+          .then(response => {
+            const { code, text } = response;
+            onVidometerStarting(code, text);
+          });
       }
     }
 
@@ -307,7 +321,6 @@ After resuming the tracking process will be completely restarting.
       vidometer.onReady = onVidometerReady;
       vidometer.onKeyframeSearching = onVidometerKeyframeSearching;
       vidometer.onCalibration = onVidometerCalibration;
-      vidometer.onStarting = onVidometerStarting;
       vidometer.onProcess = onVidometerProcess;
       vidometer.initialize(width, height, canvas);
     }
@@ -356,12 +369,20 @@ After resuming the tracking process will be completely restarting.
 2. ***sceneHeight*** - the height of the scene in pixels;
 3. ***videoCanvas*** - a reference to the canvas tag where the video frame should be rendered;
 
-**start(u, v)** - try to locate the object on the surface;
+**start(u, v):Promise** - try to locate the object on the surface;
 
 1. **u** - x screen’s coordinate;
 2.  **v** - y screen’s coordinate;
 
 origin - top left corner of the screen:
+
+returns Promise with object: **{code, text}**
+
+1. **code** - integer, response code (see Vidometer Code Response);
+    1. 1 - NOT_ENOUGH_FEATURES - means that the surface where you can place an object doesn’t have enough features;
+    2. 11 - WRONG_ORIENTATION_X - in this case, the orientation of the X axis of the phone (or the pitch, see Phone Orientation) - the angle between the phone and the floor should be not more than 60 degrees (relative to the floor);
+    3. 100 - COMPLETE - keyframe is found;
+2. **text** - string, text description of the code;
 
 **stop()** - stops **vidometer** processing;
 
@@ -386,14 +407,6 @@ origin - top left corner of the screen:
     2. 11 - WRONG_ORIENTATION_X - in this case, the orientation of the X axis of the phone (or the pitch, see Phone Orientation) - the angle between the phone and the floor should be 0 degrees (parallel to the floor);
     3. 13 - WRONG_ORIENTATION_Z - in this case, the orientation of the Z axis of the phone (or the roll, see Phone Orientation) should be close to 0 degrees;
     4. 100 - COMPLETE - keyframe is found;
-2. **text** - string, text description of the code;
-
-**onStarting(code, text)** - throws as a response on the start method when the Vidometer tries to place the object on the searched plane;
-
-1. **code** - integer, response code (see Vidometer Code Response);
-    1. 1 - NOT_ENOUGH_FEATURES - means that the surface doesn’t have enough features to be used as a keyframe;
-    2. 11 - WRONG_ORIENTATION_X - in this case, the orientation of the X axis of the phone (or the pitch, see Phone Orientation) - the angle between the phone and the floor, should be less than 60 degrees;
-    3. 100 - COMPLETE - object is located;
 2. **text** - string, text description of the code;
 
 **onProcess(rototranslation, objecRototranslation, fov)** - used to update the 3d position of the perspective camera and the object on the scene. Throws every frame;
