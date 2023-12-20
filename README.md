@@ -1,4 +1,4 @@
-# vidometer v2.1.1
+# vidometer v2.1.2
 
 **vidometer** is a World Tracking feature of **bettar-vidometry** library.
 
@@ -20,7 +20,7 @@ In order to add a **vidometer** to your site you need the following actions:
 ```tsx
 <head>
 	...
-	<script src="https://bettar.life/vidometry/vidometer.2.1.1.js"></script>
+	<script src="https://bettar.life/vidometry/vidometer.2.1.2.js"></script>
 	...
 </head>
 ```
@@ -56,10 +56,10 @@ document.body.appendChild(vidometer);
             3. 13 - WRONG_ORIENTATION_Z - in this case, the orientation of the Z axis of the phone (or the roll, see Phone Orientation) should be close to 0 degrees;
             4. 100 - COMPLETE - keyframe is found;
         2. **text** - string, text description of the code;
-    4. **onProcess(rototranslation, objecRototranslation, fov)** - used to update the 3d position of the perspective camera of the scene and the object on the scene. Throws every frame;
+    4. **onProcess(rototranslation, objectRototranslation, focal)** - used to update the 3d position of the perspective camera of the scene and the object on the scene. Throws every frame;
         1. **rototranslation** - source of roto-translation matrix (4x4);
-        2. **objecRototranslation -** source of roto-translation matrix (4x4);
-        3. **fov** - field of view of the perspective camera;
+        2. **objectRototranslation -** source of roto-translation matrix (4x4);
+        3. **focal** - focal length of the perspective camera;
 
 ```jsx
 vidometer.onReady = onVidometerReady;
@@ -124,7 +124,7 @@ After resuming the tracking process will be completely restarting.
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.js"
     integrity="sha512-NLtnLBS9Q2w7GKK9rKxdtgL7rA7CAS85uC/0xd9im4J/yOL4F9ZVlv634NAM7run8hz3wI2GabaA6vv8vJtHiQ=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://bettar.life/vidometry/vidometer.2.1.1.js"></script>
+  <script src="https://bettar.life/vidometry/vidometer.2.1.2.js"></script>
   <script>
 
     class Scene3D {
@@ -145,11 +145,10 @@ After resuming the tracking process will be completely restarting.
         this.scene = new THREE.Scene();
 
         // 3. camera
+        const fov = 70;
         const aspect = width / height;
-        this.camera = new THREE.PerspectiveCamera(this.fov, aspect, 0.01, 10000);
+        this.camera = new THREE.PerspectiveCamera(fov, aspect, 0.01, 10000);
         this.camera.filmGauge = Math.max(width, height);
-        var focal = this.fovToFocal(this.fov, this.width, this.height);
-        this.camera.setFocalLength(focal);
         this.camera.updateProjectionMatrix();
         this.scene.add(this.camera);
 
@@ -160,17 +159,9 @@ After resuming the tracking process will be completely restarting.
         this.scene.add(this.container);
       }
 
-      fovToFocal(fov, width, height) {
-        var DEG2RAD = Math.PI / 180;
-        const vExtentSlope = Math.tan(DEG2RAD * 0.5 * fov);
-        const side = Math.max(width, height);
-        return 0.5 * side / vExtentSlope;
-      };
-
-      updateFieldOfView(fov) {
-        if (this.fov !== fov) {
-          this.fov = fov;
-          var focal = this.fovToFocal(this.fov, this.width, this.height);
+      updateFocalLength(focal) {
+        if (this.focal !== focal) {
+          this.focal = focal;
           this.camera.setFocalLength(focal);
           this.camera.updateProjectionMatrix();
         }
@@ -258,7 +249,7 @@ After resuming the tracking process will be completely restarting.
     };
 
     /**
-     * Function that handles the starting
+     * Event handler on calibration event
      * @param {number} code - 0 - UNDEFINED, 1 - NOT_ENOUGH_FEATURES, 11 - WRONG_ORIENTATION_X, 13 - WRONG_ORIENTATION_Z, 100 - COMPLETE;
      * @param {string} text - text description;
      */
@@ -273,22 +264,20 @@ After resuming the tracking process will be completely restarting.
       setInfoText('Calibrated');
     }
 
-    const onVidometerProcess = (roto, roto0, fov) => {
-      scene.updateFieldOfView(fov);
+    const onVidometerProcess = (roto, roto0, focal) => {
+      scene.updateFocalLength(focal);
       scene.updateObjectMatrix(roto0);
       scene.render(roto);
     }
 
     function onClick(e) {
-      if (isCalibrated) {
-        const u = e.clientX;
-        const v = e.clientY;
-        vidometer.start(u, v)
-          .then(response => {
-            const { code, text } = response;
-            onVidometerStarting(code, text);
-          });
-      }
+      const u = e.clientX;
+      const v = e.clientY;
+      vidometer.start(u, v)
+        .then(response => {
+          const { code, text } = response;
+          onVidometerStarting(code, text);
+        });
     }
 
     function onStopResumeClick() {
@@ -409,11 +398,11 @@ returns Promise with object: **{code, text}**
     4. 100 - COMPLETE - keyframe is found;
 2. **text** - string, text description of the code;
 
-**onProcess(rototranslation, objecRototranslation, fov)** - used to update the 3d position of the perspective camera and the object on the scene. Throws every frame;
+**onProcess(rototranslation, objectRototranslation, focal)** - used to update the 3d position of the perspective camera and the object on the scene. Throws every frame;
 
 1. **rototranslation** - the source of the roto-translation matrix (4x4);
-2. **objecRototranslation -** source of roto-translation matrix (4x4);
-3. **fov** - field of view of the perspective camera;
+2. **objectRototranslation -** source of roto-translation matrix (4x4);
+3. **focal** - focal length of the perspective camera;
 
 **Vidometer Response Code:**
 

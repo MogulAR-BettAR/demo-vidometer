@@ -7,7 +7,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.js"
     integrity="sha512-NLtnLBS9Q2w7GKK9rKxdtgL7rA7CAS85uC/0xd9im4J/yOL4F9ZVlv634NAM7run8hz3wI2GabaA6vv8vJtHiQ=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://bettar.life/vidometry/vidometer.2.1.1.js"></script>
+  <script src="https://bettar.life/vidometry/vidometer.2.1.2.js"></script>
   <script>
 
     class Scene3D {
@@ -28,11 +28,10 @@
         this.scene = new THREE.Scene();
 
         // 3. camera
+        const fov = 70;
         const aspect = width / height;
-        this.camera = new THREE.PerspectiveCamera(this.fov, aspect, 0.01, 10000);
+        this.camera = new THREE.PerspectiveCamera(fov, aspect, 0.01, 10000);
         this.camera.filmGauge = Math.max(width, height);
-        var focal = this.fovToFocal(this.fov, this.width, this.height);
-        this.camera.setFocalLength(focal);
         this.camera.updateProjectionMatrix();
         this.scene.add(this.camera);
 
@@ -43,17 +42,9 @@
         this.scene.add(this.container);
       }
 
-      fovToFocal(fov, width, height) {
-        var DEG2RAD = Math.PI / 180;
-        const vExtentSlope = Math.tan(DEG2RAD * 0.5 * fov);
-        const side = Math.max(width, height);
-        return 0.5 * side / vExtentSlope;
-      };
-
-      updateFieldOfView(fov) {
-        if (this.fov !== fov) {
-          this.fov = fov;
-          var focal = this.fovToFocal(this.fov, this.width, this.height);
+      updateFocalLength(focal) {
+        if (this.focal !== focal) {
+          this.focal = focal;
           this.camera.setFocalLength(focal);
           this.camera.updateProjectionMatrix();
         }
@@ -156,22 +147,20 @@
       setInfoText('Calibrated');
     }
 
-    const onVidometerProcess = (roto, roto0, fov) => {
-      scene.updateFieldOfView(fov);
+    const onVidometerProcess = (roto, roto0, focal) => {
+      scene.updateFocalLength(focal);
       scene.updateObjectMatrix(roto0);
       scene.render(roto);
     }
 
     function onClick(e) {
-      if (isCalibrated) {
-        const u = e.clientX;
-        const v = e.clientY;
-        vidometer.start(u, v)
-          .then(response => {
-            const { code, text } = response;
-            onVidometerStarting(code, text);
-          });
-      }
+      const u = e.clientX;
+      const v = e.clientY;
+      vidometer.start(u, v)
+        .then(response => {
+          const { code, text } = response;
+          onVidometerStarting(code, text);
+        });
     }
 
     function onStopResumeClick() {
